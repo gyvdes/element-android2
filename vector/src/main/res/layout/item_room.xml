@@ -243,4 +243,24 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/roomBottomBarrier" />
 
+    <TextView
+        android:id="@+id/roomUserPresence"
+        style="@style/Widget.Vector.TextView.Caption"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="0dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="0dp"
+        android:duplicateParentState="true"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textColor="?vctr_content_primary"
+        android:textStyle="normal"
+        app:layout_constrainedWidth="true"
+        app:layout_constraintHorizontal_bias="0.0"
+        app:layout_constraintHorizontal_chainStyle="packed"
+        app:layout_constraintStart_toEndOf="@+id/roomDraftBadge"
+        app:layout_constraintBottom_toBottomOf="@+id/roomNameView"
+        tools:text="@sample/users.json/data/displayName" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
