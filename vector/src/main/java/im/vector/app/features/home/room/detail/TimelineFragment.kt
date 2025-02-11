@@ -212,6 +212,11 @@ import timber.log.Timber
 import java.net.URL
 import java.util.UUID
 import javax.inject.Inject
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
 class TimelineFragment :
@@ -1257,8 +1262,39 @@ class TimelineFragment :
                     val shieldView = if (showPresence) views.includeRoomToolbar.roomToolbarTitleShield else views.includeRoomToolbar.roomToolbarAvatarShield
                     shieldView.render(roomSummary.roomEncryptionTrustLevel)
                     views.includeRoomToolbar.roomToolbarPublicImageView.isVisible = roomSummary.isPublic && !roomSummary.isDirect
+                    views.includeRoomToolbar.roomToolbarTitleViewPresence.text = formatLastSeen(roomSummary.directUserPresence?.lastActiveAgo)
                 }
             }
+        }
+    }
+
+    fun formatLastSeen(lastPresenceAgo: Long?): String {
+
+        if (lastPresenceAgo == null) return ""
+
+        val currentTime = System.currentTimeMillis()
+        val lastSeenTime = currentTime - lastPresenceAgo
+        val lastSeenDate = Date(lastSeenTime)
+
+        val now = Calendar.getInstance()
+        val lastSeenCalendar = Calendar.getInstance().apply { time = lastSeenDate }
+
+        val diffMillis = currentTime - lastSeenTime
+        val diffMinutes = TimeUnit.MILLISECONDS.toMinutes(diffMillis)
+        val diffHours = TimeUnit.MILLISECONDS.toHours(diffMillis)
+        val diffDays = TimeUnit.MILLISECONDS.toDays(diffMillis)
+
+        return when {
+            diffMillis < 20_000 -> "онлайн"
+            diffMillis < 60_000 -> "был(а) только что"
+            diffMinutes < 60 -> "был(а) ${diffMinutes} мин. назад"
+            diffHours < 24 -> "был(а) ${diffHours} ч. назад"
+            diffDays == 1L -> "вчера в ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(lastSeenDate)}"
+            diffDays < 7 -> "был(а) ${diffDays} дн. назад"
+            now.get(Calendar.YEAR) == lastSeenCalendar.get(Calendar.YEAR) ->
+                "был(а) ${SimpleDateFormat("dd MMM в HH:mm", Locale.getDefault()).format(lastSeenDate)}"
+            else ->
+                "был(а) ${SimpleDateFormat("dd MMM yyyy в HH:mm", Locale.getDefault()).format(lastSeenDate)}"
         }
     }
 
