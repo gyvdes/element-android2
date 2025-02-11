@@ -44,6 +44,8 @@ import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.openFileSelection
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.DialogImportE2eKeysBinding
+import im.vector.app.features.MainActivity
+import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.analytics.AnalyticsConfig
 import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.analytics.ui.consent.AnalyticsConsentViewActions
@@ -73,6 +75,9 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.session.crypto.crosssigning.isVerified
 import org.matrix.android.sdk.api.session.crypto.model.DeviceInfo
+import org.matrix.android.sdk.api.session.room.model.Membership
+import org.matrix.android.sdk.api.session.room.model.RoomSummary
+import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -201,6 +206,10 @@ class VectorSettingsSecurityPrivacyFragment :
     private val ignoredUsersPreference by lazy {
         findPreference<VectorPreference>("SETTINGS_IGNORED_USERS_PREFERENCE_KEY")!!
     }
+
+    private val leaveRoomsUsersPreference by lazy {
+        findPreference<VectorPreference>("SETTINGS_SECURITY_LEAVE_ALL_ROOM")!!
+    }
 //    private val secureBackupResetPreference by lazy {
 //        findPreference<VectorPreference>(VectorPreferences.SETTINGS_SECURE_BACKUP_RESET_PREFERENCE_KEY)
 //    }
@@ -283,6 +292,12 @@ class VectorSettingsSecurityPrivacyFragment :
         // Pin code
         openPinCodeSettingsPref.setOnPreferenceClickListener {
             openPinCodePreferenceScreen()
+            true
+        }
+
+        // Leave all rooms
+        leaveRoomsUsersPreference.setOnPreferenceClickListener {
+            leaveAllRooms()
             true
         }
 
@@ -431,6 +446,25 @@ class VectorSettingsSecurityPrivacyFragment :
         }
     }
 
+    private fun leaveAllRooms() {
+        val rooms: List<RoomSummary> = session.roomService().getRoomSummaries(roomSummaryQueryParams {
+            memberships = listOf(Membership.JOIN)
+        })
+        displayLoadingView()
+        viewLifecycleOwner.lifecycleScope.launch {
+            rooms.forEach {
+                viewLifecycleOwner.lifecycleScope.launch {
+                    runCatching { session.roomService().leaveRoom(it.roomId) }
+                            .fold({ println("roomId $it deleted") },
+                                    { println("roomId $it error deleted") })
+
+                }
+                MainActivity.restartApp(requireActivity(), MainActivityArgs(clearCache = true))
+                hideLoadingView()
+            }
+
+        }
+    }
     private fun doOpenPinCodePreferenceScreen() {
         (vectorActivity as? VectorSettingsActivity)?.navigateTo(VectorSettingsPinFragment::class.java)
     }

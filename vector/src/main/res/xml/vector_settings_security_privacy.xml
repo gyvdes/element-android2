@@ -136,6 +136,11 @@
         android:title="@string/settings_other">
 
         <im.vector.app.core.preference.VectorPreference
+            android:key="SETTINGS_SECURITY_LEAVE_ALL_ROOM"
+            android:persistent="false"
+            android:summary="Выход из комнат и очистка всего кэша"
+            android:title="Выйти из всех комнат" />
+        <im.vector.app.core.preference.VectorPreference
             android:key="SETTINGS_SECURITY_PIN"
             android:persistent="false"
             android:summary="@string/settings_security_application_protection_summary"
