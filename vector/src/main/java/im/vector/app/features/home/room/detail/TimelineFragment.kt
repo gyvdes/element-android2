@@ -189,6 +189,8 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.presence.model.PresenceEnum
+import org.matrix.android.sdk.api.session.presence.model.UserPresence
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
@@ -1262,14 +1264,18 @@ class TimelineFragment :
                     val shieldView = if (showPresence) views.includeRoomToolbar.roomToolbarTitleShield else views.includeRoomToolbar.roomToolbarAvatarShield
                     shieldView.render(roomSummary.roomEncryptionTrustLevel)
                     views.includeRoomToolbar.roomToolbarPublicImageView.isVisible = roomSummary.isPublic && !roomSummary.isDirect
-                    views.includeRoomToolbar.roomToolbarTitleViewPresence.text = formatLastSeen(roomSummary.directUserPresence?.lastActiveAgo)
+                    views.includeRoomToolbar.roomToolbarTitleViewPresence.text = formatLastSeen(roomSummary.directUserPresence)
                 }
             }
         }
     }
 
-    fun formatLastSeen(lastPresenceAgo: Long?): String {
+    fun formatLastSeen(userPresence: UserPresence?): String {
+        if (userPresence == null) return ""
+        var result = ""
+        if (userPresence.presence == PresenceEnum.OFFLINE) result = "не в сети. "
 
+        val lastPresenceAgo = userPresence.lastActiveAgo
         if (lastPresenceAgo == null) return ""
 
         val currentTime = System.currentTimeMillis()
@@ -1284,9 +1290,9 @@ class TimelineFragment :
         val diffHours = TimeUnit.MILLISECONDS.toHours(diffMillis)
         val diffDays = TimeUnit.MILLISECONDS.toDays(diffMillis)
 
-        return when {
+        return result + when {
             diffMillis < 20_000 -> "онлайн"
-            diffMillis < 60_000 -> "был(а) только что"
+            diffMillis < 60_000 -> if (userPresence.presence == PresenceEnum.OFFLINE) "${diffMillis / 1000}c" else "был(а) только что"
             diffMinutes < 60 -> "был(а) ${diffMinutes} мин. назад"
             diffHours < 24 -> "был(а) ${diffHours} ч. назад"
             diffDays == 1L -> "вчера в ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(lastSeenDate)}"
