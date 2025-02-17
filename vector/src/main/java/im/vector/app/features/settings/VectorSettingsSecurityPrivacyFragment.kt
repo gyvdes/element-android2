@@ -75,9 +75,6 @@ import org.matrix.android.sdk.api.extensions.tryOrNull
 import org.matrix.android.sdk.api.raw.RawService
 import org.matrix.android.sdk.api.session.crypto.crosssigning.isVerified
 import org.matrix.android.sdk.api.session.crypto.model.DeviceInfo
-import org.matrix.android.sdk.api.session.room.model.Membership
-import org.matrix.android.sdk.api.session.room.model.RoomSummary
-import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -295,12 +292,6 @@ class VectorSettingsSecurityPrivacyFragment :
             true
         }
 
-        // Leave all rooms
-        leaveRoomsUsersPreference.setOnPreferenceClickListener {
-            leaveAllRooms()
-            true
-        }
-
         secureBackupPreference.icon = activity?.let {
             ThemeUtils.tintDrawable(
                     it,
@@ -446,25 +437,6 @@ class VectorSettingsSecurityPrivacyFragment :
         }
     }
 
-    private fun leaveAllRooms() {
-        val rooms: List<RoomSummary> = session.roomService().getRoomSummaries(roomSummaryQueryParams {
-            memberships = listOf(Membership.JOIN)
-        })
-        displayLoadingView()
-        viewLifecycleOwner.lifecycleScope.launch {
-            rooms.forEach {
-                viewLifecycleOwner.lifecycleScope.launch {
-                    runCatching { session.roomService().leaveRoom(it.roomId) }
-                            .fold({ println("roomId $it deleted") },
-                                    { println("roomId $it error deleted") })
-
-                }
-                MainActivity.restartApp(requireActivity(), MainActivityArgs(clearCache = true))
-                hideLoadingView()
-            }
-
-        }
-    }
     private fun doOpenPinCodePreferenceScreen() {
         (vectorActivity as? VectorSettingsActivity)?.navigateTo(VectorSettingsPinFragment::class.java)
     }
