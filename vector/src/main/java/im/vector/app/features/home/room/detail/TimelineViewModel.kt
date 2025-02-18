@@ -65,6 +65,8 @@ import im.vector.app.features.voicebroadcast.VoiceBroadcastHelper
 import im.vector.lib.core.utils.flow.chunk
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -175,6 +177,8 @@ class TimelineViewModel @AssistedInject constructor(
     private var mostRecentDisplayedEvent: TimelineEvent? = null
 
     private var prepareToEncrypt: Async<Unit> = Uninitialized
+
+    private var jobPresence: Job? = null
 
     @AssistedFactory
     interface Factory : MavericksAssistedViewModelFactory<TimelineViewModel, RoomDetailViewState> {
@@ -513,7 +517,19 @@ class TimelineViewModel @AssistedInject constructor(
             is RoomDetailAction.EndPoll -> handleEndPoll(action.eventId)
             RoomDetailAction.StopLiveLocationSharing -> handleStopLiveLocationSharing()
             RoomDetailAction.OpenElementCallWidget -> handleOpenElementCallWidget()
+            is RoomDetailAction.PresenceUser -> handlePresenceUser(action.userId)
         }
+    }
+
+    private fun handlePresenceUser(userId: String?) {
+        if (jobPresence == null)
+            jobPresence = viewModelScope.launch {
+                while (true) {
+                    val userPresence = userId?.let { session.presenceService().fetchPresence(it) }
+                    userPresence?.let{setState { copy(presenceUser = it) }}
+                    delay(10000)
+                }
+            }
     }
 
     private fun handleOpenElementCallWidget() = withState { state ->

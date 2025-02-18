@@ -14,6 +14,7 @@ import im.vector.app.features.home.room.detail.arguments.TimelineArgs
 import im.vector.app.features.share.SharedData
 import org.matrix.android.sdk.api.extensions.orFalse
 import org.matrix.android.sdk.api.session.events.model.Event
+import org.matrix.android.sdk.api.session.presence.model.UserPresence
 import org.matrix.android.sdk.api.session.room.members.ChangeMembershipState
 import org.matrix.android.sdk.api.session.room.model.RoomMemberSummary
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
@@ -71,6 +72,7 @@ data class RoomDetailViewState(
         val isSharingLiveLocation: Boolean = false,
         val showKeyboardWhenPresented: Boolean = false,
         val sharedData: SharedData? = null,
+        val presenceUser: UserPresence? = null
 ) : MavericksState {
 
     constructor(args: TimelineArgs) : this(

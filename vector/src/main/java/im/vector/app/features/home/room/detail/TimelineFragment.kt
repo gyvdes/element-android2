@@ -1151,7 +1151,9 @@ class TimelineFragment :
             return@withState
         }
         val summary = mainState.asyncRoomSummary()
-        renderToolbar(summary)
+        renderToolbar(summary, mainState)
+        timelineViewModel.handle(RoomDetailAction.PresenceUser(summary?.directUserId))
+
         views.removeJitsiWidgetView.render(mainState)
         if (mainState.hasFailedSending) {
             lazyLoadedViews.failedMessagesWarningView(inflateIfNeeded = true, createFailedMessagesWarningCallback())?.isVisible = true
@@ -1230,7 +1232,7 @@ class TimelineFragment :
         voiceMessageRecorderContainer.isVisible = false
     }
 
-    private fun renderToolbar(roomSummary: RoomSummary?) {
+    private fun renderToolbar(roomSummary: RoomSummary?, mainState: RoomDetailViewState) {
         when {
             isLocalRoom() -> {
                 views.includeRoomToolbar.roomToolbarContentView.isVisible = false
@@ -1264,7 +1266,12 @@ class TimelineFragment :
                     val shieldView = if (showPresence) views.includeRoomToolbar.roomToolbarTitleShield else views.includeRoomToolbar.roomToolbarAvatarShield
                     shieldView.render(roomSummary.roomEncryptionTrustLevel)
                     views.includeRoomToolbar.roomToolbarPublicImageView.isVisible = roomSummary.isPublic && !roomSummary.isDirect
-                    views.includeRoomToolbar.roomToolbarTitleViewPresence.text = formatLastSeen(roomSummary.directUserPresence)
+                    val presence = if (formatLastSeen(mainState.presenceUser) == "")
+                        formatLastSeen(roomSummary.directUserPresence)
+                    else
+                        formatLastSeen(mainState.presenceUser)
+
+                    views.includeRoomToolbar.roomToolbarTitleViewPresence.text = presence
                 }
             }
         }
@@ -1273,10 +1280,10 @@ class TimelineFragment :
     fun formatLastSeen(userPresence: UserPresence?): String {
         if (userPresence == null) return ""
         var result = ""
+
         if (userPresence.presence == PresenceEnum.OFFLINE) result = "не в сети. "
 
-        val lastPresenceAgo = userPresence.lastActiveAgo
-        if (lastPresenceAgo == null) return ""
+        val lastPresenceAgo = userPresence.lastActiveAgo ?: return ""
 
         val currentTime = System.currentTimeMillis()
         val lastSeenTime = currentTime - lastPresenceAgo
@@ -1291,7 +1298,7 @@ class TimelineFragment :
         val diffDays = TimeUnit.MILLISECONDS.toDays(diffMillis)
 
         return result + when {
-            diffMillis < 20_000 -> "онлайн"
+            diffMillis < 15_000 -> "онлайн"
             diffMillis < 60_000 -> if (userPresence.presence == PresenceEnum.OFFLINE) "${diffMillis / 1000}c" else "был(а) только что"
             diffMinutes < 60 -> "был(а) ${diffMinutes} мин. назад"
             diffHours < 24 -> "был(а) ${diffHours} ч. назад"
