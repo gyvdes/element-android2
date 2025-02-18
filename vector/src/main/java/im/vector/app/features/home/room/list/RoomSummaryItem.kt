@@ -31,14 +31,8 @@ import im.vector.app.features.home.RoomListDisplayMode
 import im.vector.app.features.themes.ThemeUtils
 import im.vector.lib.core.utils.epoxy.charsequence.EpoxyCharSequence
 import org.matrix.android.sdk.api.session.crypto.model.RoomEncryptionTrustLevel
-import org.matrix.android.sdk.api.session.presence.model.PresenceEnum
 import org.matrix.android.sdk.api.session.presence.model.UserPresence
 import org.matrix.android.sdk.api.util.MatrixItem
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 @EpoxyModelClass
 abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layout.item_room) {
@@ -122,44 +116,8 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         holder.roomAvatarFailSendingImageView.isVisible = hasFailedSending
         renderSelection(holder, showSelected)
         holder.roomAvatarPresenceImageView.render(showPresence, userPresence)
-        holder.rootUserPresence.text = formatLastSeen(userPresence)
-
         if (useSingleLineForLastEvent) {
             holder.subtitleView.setLines(1)
-        }
-    }
-
-    fun formatLastSeen(userPresence: UserPresence?): String {
-        if (userPresence == null) return ""
-        var result = ""
-        if (userPresence.presence == PresenceEnum.OFFLINE) result = "не в сети. "
-
-        val lastPresenceAgo = userPresence.lastActiveAgo
-        if (lastPresenceAgo == null) return ""
-
-        val currentTime = System.currentTimeMillis()
-        val lastSeenTime = currentTime - lastPresenceAgo
-        val lastSeenDate = Date(lastSeenTime)
-
-        val now = Calendar.getInstance()
-        val lastSeenCalendar = Calendar.getInstance().apply { time = lastSeenDate }
-
-        val diffMillis = currentTime - lastSeenTime
-        val diffMinutes = TimeUnit.MILLISECONDS.toMinutes(diffMillis)
-        val diffHours = TimeUnit.MILLISECONDS.toHours(diffMillis)
-        val diffDays = TimeUnit.MILLISECONDS.toDays(diffMillis)
-
-        return result + when {
-            diffMillis < 20_000 -> "онлайн"
-            diffMillis < 60_000 -> if (userPresence.presence == PresenceEnum.OFFLINE) "${diffMillis / 1000}c" else "был(а) только что"
-            diffMinutes < 60 -> "был(а) ${diffMinutes} мин. назад"
-            diffHours < 24 -> "был(а) ${diffHours} ч. назад"
-            diffDays == 1L -> "вчера в ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(lastSeenDate)}"
-            diffDays < 7 -> "был(а) ${diffDays} дн. назад"
-            now.get(Calendar.YEAR) == lastSeenCalendar.get(Calendar.YEAR) ->
-                "был(а) ${SimpleDateFormat("dd MMM в HH:mm", Locale.getDefault()).format(lastSeenDate)}"
-            else ->
-                "был(а) ${SimpleDateFormat("dd MMM yyyy в HH:mm", Locale.getDefault()).format(lastSeenDate)}"
         }
     }
 
@@ -215,6 +173,5 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         val roomAvatarFailSendingImageView by bind<ImageView>(R.id.roomAvatarFailSendingImageView)
         val roomAvatarPresenceImageView by bind<PresenceStateImageView>(R.id.roomAvatarPresenceImageView)
         val rootView by bind<ConstraintLayout>(R.id.itemRoomLayout)
-        val rootUserPresence by bind<TextView>(R.id.roomUserPresence)
     }
 }
