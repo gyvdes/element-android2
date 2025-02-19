@@ -525,8 +525,14 @@ class TimelineViewModel @AssistedInject constructor(
         if (jobPresence == null)
             jobPresence = viewModelScope.launch {
                 while (true) {
-                    val userPresence = userId?.let { session.presenceService().fetchPresence(it) }
-                    userPresence?.let{setState { copy(presenceUser = it) }}
+                    try {
+                        val userPresence = userId?.let { session.presenceService().fetchPresence(it) }
+
+                        userPresence?.let{setState { copy(presenceUser = it) }}
+
+                    } catch (e: Throwable) {
+                        Timber.e(e)
+                    }
                     delay(10000)
                 }
             }
