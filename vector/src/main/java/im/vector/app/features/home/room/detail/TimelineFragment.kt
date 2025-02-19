@@ -1279,9 +1279,6 @@ class TimelineFragment :
 
     fun formatLastSeen(userPresence: UserPresence?): String {
         if (userPresence == null) return ""
-        var result = ""
-
-        if (userPresence.presence == PresenceEnum.OFFLINE) result = "не в сети. "
 
         val lastPresenceAgo = userPresence.lastActiveAgo ?: return ""
 
@@ -1296,18 +1293,26 @@ class TimelineFragment :
         val diffMinutes = TimeUnit.MILLISECONDS.toMinutes(diffMillis)
         val diffHours = TimeUnit.MILLISECONDS.toHours(diffMillis)
         val diffDays = TimeUnit.MILLISECONDS.toDays(diffMillis)
-
-        return result + when {
-            diffMillis < 15_000 -> "онлайн"
-            diffMillis < 60_000 -> if (userPresence.presence == PresenceEnum.OFFLINE) "${diffMillis / 1000}c" else "был(а) только что"
-            diffMinutes < 60 -> "был(а) ${diffMinutes} мин. назад"
-            diffHours < 24 -> "был(а) ${diffHours} ч. назад"
-            diffDays == 1L -> "вчера в ${SimpleDateFormat("HH:mm", Locale.getDefault()).format(lastSeenDate)}"
-            diffDays < 7 -> "был(а) ${diffDays} дн. назад"
+        return when {
+            diffMillis < 15_000 -> getString(CommonStrings.status_online)
+            diffMillis < 60_000 -> getString(CommonStrings.status_just_now)
+            diffMinutes < 60 -> getString(CommonStrings.status_minutes_ago, diffMinutes)
+            diffHours < 24 -> getString(CommonStrings.status_hours_ago, diffHours)
+            diffDays == 1L -> getString(
+                    CommonStrings.status_yesterday_at,
+                    SimpleDateFormat("HH:mm", Locale.getDefault()).format(lastSeenDate)
+            )
+            diffDays < 7 -> getString(CommonStrings.status_days_ago, diffDays)
             now.get(Calendar.YEAR) == lastSeenCalendar.get(Calendar.YEAR) ->
-                "был(а) ${SimpleDateFormat("dd MMM в HH:mm", Locale.getDefault()).format(lastSeenDate)}"
+                getString(
+                        CommonStrings.status_date_time,
+                        SimpleDateFormat("dd MMM 'at' HH:mm", Locale.getDefault()).format(lastSeenDate)
+                )
             else ->
-                "был(а) ${SimpleDateFormat("dd MMM yyyy в HH:mm", Locale.getDefault()).format(lastSeenDate)}"
+                getString(
+                        CommonStrings.status_full_date_time,
+                        SimpleDateFormat("dd MMM yyyy 'at' HH:mm", Locale.getDefault()).format(lastSeenDate)
+                )
         }
     }
 
