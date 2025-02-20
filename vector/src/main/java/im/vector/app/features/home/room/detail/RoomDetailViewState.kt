@@ -72,7 +72,8 @@ data class RoomDetailViewState(
         val isSharingLiveLocation: Boolean = false,
         val showKeyboardWhenPresented: Boolean = false,
         val sharedData: SharedData? = null,
-        val presenceUser: UserPresence? = null
+        val presenceUser: UserPresence? = null,
+        val connectError: Boolean = false
 ) : MavericksState {
 
     constructor(args: TimelineArgs) : this(

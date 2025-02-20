@@ -528,10 +528,10 @@ class TimelineViewModel @AssistedInject constructor(
                     try {
                         val userPresence = userId?.let { session.presenceService().fetchPresence(it) }
 
-                        userPresence?.let{setState { copy(presenceUser = it) }}
+                        userPresence?.let{setState { copy(presenceUser = it, connectError = false) }}
 
                     } catch (e: Throwable) {
-                        Timber.e(e)
+                        setState { copy(presenceUser = null, connectError = true) }
                     }
                     delay(10000)
                 }
