@@ -1958,6 +1958,16 @@
     <string name="user_reported_as_inappropriate_title">"Reported user"</string>
     <string name="user_reported_as_inappropriate_content">"The user has been reported.\n\nIf you don't want to see any more content from this user, you can ignore them to hide their messages."</string>
 
+    <string name="status_online">online</string>
+    <string name="status_seconds_ago">%ds ago</string>
+    <string name="status_just_now">just now</string>
+    <string name="status_minutes_ago">%d min ago</string>
+    <string name="status_hours_ago">%d h ago</string>
+    <string name="status_yesterday_at">yesterday at %s</string>
+    <string name="status_days_ago">%d days ago</string>
+    <string name="status_date_time">last seen %s</string>
+    <string name="status_full_date_time">last seen %s</string>
+
     <string name="message_ignore_user">Ignore user</string>
     <string name="message_report_user">Report user</string>
 

@@ -116,7 +116,6 @@ abstract class RoomSummaryItem : VectorEpoxyModel<RoomSummaryItem.Holder>(R.layo
         holder.roomAvatarFailSendingImageView.isVisible = hasFailedSending
         renderSelection(holder, showSelected)
         holder.roomAvatarPresenceImageView.render(showPresence, userPresence)
-
         if (useSingleLineForLastEvent) {
             holder.subtitleView.setLines(1)
         }

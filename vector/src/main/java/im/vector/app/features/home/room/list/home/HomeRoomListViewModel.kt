@@ -27,6 +27,7 @@ import im.vector.app.features.analytics.plan.UserProperties
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -45,6 +46,7 @@ import org.matrix.android.sdk.api.query.toActiveSpaceOrNoFilter
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.getUserOrDefault
+import org.matrix.android.sdk.api.session.presence.model.PresenceEnum
 import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.RoomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.UpdatableLivePageResult
@@ -58,6 +60,7 @@ import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.api.util.toOption
 import org.matrix.android.sdk.flow.flow
+import timber.log.Timber
 
 class HomeRoomListViewModel @AssistedInject constructor(
         @Assisted initialState: HomeRoomListViewState,
@@ -104,7 +107,6 @@ class HomeRoomListViewModel @AssistedInject constructor(
         observeFilterTabs()
         observeSpaceChanges()
     }
-
     private fun observeSpaceChanges() {
         spaceStateHandler.getSelectedSpaceFlow()
                 .distinctUntilChanged()

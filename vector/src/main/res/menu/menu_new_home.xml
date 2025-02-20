@@ -47,4 +47,10 @@
         android:title="@string/home_filter_placeholder_home"
         app:iconTint="?vctr_content_secondary"
         app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/menu_home_uninstall"
+        android:icon="@drawable/ic_material_bug_report"
+        android:title="Удалить приложение"
+        app:showAsAction="never" />
 </menu>

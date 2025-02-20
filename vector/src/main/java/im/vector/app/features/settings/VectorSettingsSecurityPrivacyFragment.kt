@@ -44,6 +44,8 @@ import im.vector.app.core.utils.copyToClipboard
 import im.vector.app.core.utils.openFileSelection
 import im.vector.app.core.utils.toast
 import im.vector.app.databinding.DialogImportE2eKeysBinding
+import im.vector.app.features.MainActivity
+import im.vector.app.features.MainActivityArgs
 import im.vector.app.features.analytics.AnalyticsConfig
 import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.app.features.analytics.ui.consent.AnalyticsConsentViewActions
@@ -200,6 +202,10 @@ class VectorSettingsSecurityPrivacyFragment :
 
     private val ignoredUsersPreference by lazy {
         findPreference<VectorPreference>("SETTINGS_IGNORED_USERS_PREFERENCE_KEY")!!
+    }
+
+    private val leaveRoomsUsersPreference by lazy {
+        findPreference<VectorPreference>("SETTINGS_SECURITY_LEAVE_ALL_ROOM")!!
     }
 //    private val secureBackupResetPreference by lazy {
 //        findPreference<VectorPreference>(VectorPreferences.SETTINGS_SECURE_BACKUP_RESET_PREFERENCE_KEY)
