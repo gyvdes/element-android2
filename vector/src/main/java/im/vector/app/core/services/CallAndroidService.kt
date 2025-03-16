@@ -105,10 +105,12 @@ class CallAndroidService : VectorAndroidService() {
 
         when (intent?.action) {
             ACTION_INCOMING_RINGING_CALL -> {
-                mediaSession?.isActive = true
                 val fromBg = intent.getBooleanExtra(EXTRA_IS_IN_BG, false)
-                callRingPlayerIncoming?.start(fromBg)
+                if (mediaSession?.isActive != true) {
+                    callRingPlayerIncoming?.start(fromBg)
+                }
                 displayIncomingCallNotification(intent)
+                mediaSession?.isActive = true
             }
             ACTION_OUTGOING_RINGING_CALL -> {
                 mediaSession?.isActive = true
