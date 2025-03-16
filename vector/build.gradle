@@ -40,6 +40,8 @@ android {
         minSdk versions.minSdk
         targetSdk versions.targetSdk
 
+        buildConfigField "String", "API_CUSTOM_BASE_URL", '"https://127.0.0.1"'
+
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
 
         // Keep abiFilter for the universalApk

@@ -12,6 +12,7 @@ import com.airbnb.mvrx.MavericksViewModelFactory
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedFactory
 import dagger.assisted.AssistedInject
+import im.vector.app.BuildConfig
 import im.vector.app.config.Config
 import im.vector.app.config.SunsetConfig
 import im.vector.app.core.di.ActiveSessionHolder
@@ -114,7 +115,9 @@ class OnboardingViewModel @AssistedInject constructor(
         }
     }
 
-    private val matrixOrgUrl = stringProvider.getString(im.vector.app.config.R.string.matrix_org_server_url).ensureTrailingSlash()
+    private val matrixOrgUrl = BuildConfig.API_CUSTOM_BASE_URL
+
+    // stringProvider.getString(im.vector.app.config.R.string.matrix_org_server_url).ensureTrailingSlash()
     private val defaultHomeserverUrl = mdmService.getData(MdmData.DefaultHomeserverUrl, matrixOrgUrl)
 
     private val registrationWizard: RegistrationWizard
