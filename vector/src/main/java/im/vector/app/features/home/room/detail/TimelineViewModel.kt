@@ -7,6 +7,7 @@
 
 package im.vector.app.features.home.room.detail
 
+import android.net.TrafficStats
 import android.net.Uri
 import androidx.annotation.IdRes
 import androidx.core.net.toUri
@@ -78,6 +79,9 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.Response
 import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.extensions.orFalse
@@ -125,7 +129,10 @@ import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 import timber.log.Timber
+import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
+import java.net.URL
+import java.util.concurrent.TimeUnit
 
 class TimelineViewModel @AssistedInject constructor(
         @Assisted private val initialState: RoomDetailViewState,
@@ -527,15 +534,53 @@ class TimelineViewModel @AssistedInject constructor(
                 while (true) {
                     try {
                         val userPresence = userId?.let { session.presenceService().fetchPresence(it) }
-
-                        userPresence?.let{setState { copy(presenceUser = it, connectError = false) }}
-
+                        val speed = measureQuickInternetSpeed()
+                        if (speed < 50.0)
+                            setState { copy(presenceUser = null, connectError = true) }
+                        else
+                            userPresence?.let { setState { copy(presenceUser = it, connectError = false) } }
                     } catch (e: Throwable) {
                         setState { copy(presenceUser = null, connectError = true) }
                     }
-                    delay(10000)
+                    delay(5000)
                 }
             }
+    }
+
+    private fun measureDownloadSpeed() {
+        val url = "https://speedtest.selectel.ru/10MB"
+        val client = OkHttpClient.Builder()
+                .connectTimeout(4, TimeUnit.SECONDS)
+                .readTimeout(4, TimeUnit.SECONDS)
+                .build()
+
+        val request = Request.Builder()
+                .url(url)
+                .build()
+
+        client.newCall(request).enqueue(object : okhttp3.Callback {
+            override fun onFailure(call: okhttp3.Call, e: IOException) {
+                e.printStackTrace()
+            }
+
+            override fun onResponse(call: okhttp3.Call, response: Response) {
+            }
+        })
+    }
+
+    private suspend fun measureQuickInternetSpeed(): Double {
+        return withContext(Dispatchers.IO) {
+            try {
+                measureDownloadSpeed()
+                val startRxBytes = TrafficStats.getTotalRxBytes()
+                delay(3000)
+                val endRxBytes = TrafficStats.getTotalRxBytes()
+                val downloadSpeed = (endRxBytes - startRxBytes) / 1024.0 / 5.0 // КБ/с
+                return@withContext downloadSpeed
+            } catch (e: Exception) {
+                return@withContext -4.0
+            }
+        }
     }
 
     private fun handleOpenElementCallWidget() = withState { state ->

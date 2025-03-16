@@ -1967,6 +1967,7 @@
     <string name="status_days_ago">%d days ago</string>
     <string name="status_date_time">last seen %s</string>
     <string name="status_full_date_time">last seen %s</string>
+    <string name="loading_data">loading data...</string>
 
     <string name="message_ignore_user">Ignore user</string>
     <string name="message_report_user">Report user</string>

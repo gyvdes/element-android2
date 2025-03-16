@@ -1266,12 +1266,13 @@ class TimelineFragment :
                     val shieldView = if (showPresence) views.includeRoomToolbar.roomToolbarTitleShield else views.includeRoomToolbar.roomToolbarAvatarShield
                     shieldView.render(roomSummary.roomEncryptionTrustLevel)
                     views.includeRoomToolbar.roomToolbarPublicImageView.isVisible = roomSummary.isPublic && !roomSummary.isDirect
+                    views.includeRoomToolbar.progressBarTb.isVisible = false
                     val presence = when {
                         formatLastSeen(mainState.presenceUser).isNotEmpty() -> formatLastSeen(mainState.presenceUser)
-                        !mainState.connectError -> formatLastSeen(roomSummary.directUserPresence)
-                        else -> ""
+                        else -> {
+                            views.includeRoomToolbar.progressBarTb.isVisible = true
+                            getString(CommonStrings.loading_data)}
                     }
-
                     views.includeRoomToolbar.roomToolbarTitleViewPresence.text = presence
                 }
             }
