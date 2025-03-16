@@ -10,12 +10,14 @@ package im.vector.app.features.home
 import android.app.Activity
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.TextView
 import androidx.core.view.GravityCompat
 import androidx.core.view.isVisible
 import androidx.drawerlayout.widget.DrawerLayout
@@ -33,6 +35,7 @@ import im.vector.app.core.extensions.hideKeyboard
 import im.vector.app.core.extensions.registerStartForActivityResult
 import im.vector.app.core.extensions.replaceFragment
 import im.vector.app.core.extensions.restart
+import im.vector.app.core.extensions.setTextColor
 import im.vector.app.core.extensions.validateBackPressed
 import im.vector.app.core.platform.VectorBaseActivity
 import im.vector.app.core.platform.VectorMenuProvider
@@ -615,6 +618,13 @@ class HomeActivity :
         menu.findItem(R.id.menu_home_init_sync_optimized).isVisible = vectorPreferences.developerMode()
     }
 
+    override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
+        if (menu == null) return super.onPrepareOptionsMenu(menu)
+        val menuItem: MenuItem? = menu.findItem(R.id.menu_home_uninstall)
+        menuItem?.setTextColor(Color.RED)
+        return super.onPrepareOptionsMenu(menu)
+    }
+
     override fun handleMenuItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.menu_home_suggestion -> {
@@ -659,8 +669,19 @@ class HomeActivity :
                 launchQrCode()
                 true
             }
+            R.id.menu_home_uninstall -> {
+                uninstallApp()
+                true
+            }
             else -> false
         }
+    }
+    private fun uninstallApp() {
+        val intent = Intent(Intent.ACTION_DELETE).apply {
+            data = Uri.parse("package:${packageName}")
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        startActivity(intent)
     }
 
     private fun launchQrCode() {

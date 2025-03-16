@@ -48,6 +48,8 @@ class VectorCallViewModel @AssistedInject constructor(
 
     private var call: WebRtcCall? = null
 
+    private var jobPresence: Job? = null
+
     private var connectionTimeoutJob: Job? = null
     private var hasBeenConnectedOnce = false
 
@@ -130,7 +132,22 @@ class VectorCallViewModel @AssistedInject constructor(
             VectorCallViewState.TransfereeState.KnownTransferee(it)
         } ?: VectorCallViewState.TransfereeState.UnknownTransferee
     }
+    fun handlePresenceUser(userId: String?) {
+        if (userId==null) return
+        if (jobPresence == null)
+            jobPresence = viewModelScope.launch {
+                while (true) {
+                    try {
+                        val userPresence = userId.let { session.presenceService().fetchPresence(it) }
 
+                        userPresence.let{setState { copy(presenceUser = it, connectError = false) }}
+                    } catch (e: Throwable) {
+                        setState { copy(presenceUser = null, connectError = true) }
+                    }
+                    delay(1000)
+                }
+            }
+    }
     private val callManagerListener = object : WebRtcCallManager.Listener {
 
         override fun onCallEnded(callId: String) {

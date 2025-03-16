@@ -5,6 +5,7 @@
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.REQUEST_DELETE_PACKAGES"/>
     <!--
     Required for long polling account synchronisation in background.
     If not present ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS intent action won't work

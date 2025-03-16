@@ -107,7 +107,21 @@
         app:subtitleTextColor="@color/element_background_light"
         app:title="Video call"
         app:titleTextColor="@color/element_background_light" />
-
+<TextView
+    android:id="@+id/callToolbarPresence"
+    style="@style/Widget.Vector.TextView.Title"
+    android:layout_width="0dp"
+    android:layout_height="wrap_content"
+    android:layout_marginStart="@dimen/layout_horizontal_margin"
+    android:layout_marginTop="16dp"
+    android:layout_marginEnd="@dimen/layout_horizontal_margin"
+    android:gravity="center"
+    android:textColor="@android:color/white"
+    android:textStyle="bold"
+    app:layout_constraintTop_toBottomOf="@+id/callToolbar"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintStart_toStartOf="parent"
+/>
     <ImageView
         android:id="@+id/otherMemberAvatar"
         android:layout_width="120dp"

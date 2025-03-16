@@ -3070,6 +3070,19 @@
     <string name="user_reported_as_inappropriate_content">Жалоба на пользователя отправлена.
 \n
 \nЕсли вы больше не хотите видеть от этого пользователя ничего, вы можете его игнорировать его чтобы скрыть его сообщения.</string>
+
+    <string name="status_online">онлайн</string>
+    <string name="status_seconds_ago">%dс назад</string>
+    <string name="status_just_now">был(а) только что</string>
+    <string name="status_minutes_ago">был(а) %d мин. назад</string>
+    <string name="status_hours_ago">был(а) %d ч. назад</string>
+    <string name="status_yesterday_at">был(а) вчера в %s</string>
+    <string name="status_days_ago">был(а) %d дн. назад</string>
+    <string name="status_date_time">был(а) %s</string>
+    <string name="status_full_date_time">был(а) %s</string>
+
+    <string name="loading_data">загрузка данных...</string>
+
     <string name="message_report_user">Пожаловаться на пользователя</string>
     <string name="login_splash_sign_in">Войти</string>
     <string name="invite_unknown_users_dialog_content">Не удалось найти профили для перечисленных ниже Matrix ID. Вы всё равно хотите их пригласить\?

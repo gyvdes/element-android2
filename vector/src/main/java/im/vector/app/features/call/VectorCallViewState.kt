@@ -12,6 +12,7 @@ import com.airbnb.mvrx.MavericksState
 import com.airbnb.mvrx.Uninitialized
 import im.vector.app.features.call.audio.CallAudioManager
 import org.matrix.android.sdk.api.session.call.CallState
+import org.matrix.android.sdk.api.session.presence.model.UserPresence
 import org.matrix.android.sdk.api.util.MatrixItem
 
 data class VectorCallViewState(
@@ -34,7 +35,9 @@ data class VectorCallViewState(
         val formattedDuration: String = "",
         val canOpponentBeTransferred: Boolean = false,
         val transferee: TransfereeState = TransfereeState.NoTransferee,
-        val isSharingScreen: Boolean = false
+        val isSharingScreen: Boolean = false,
+        val presenceUser: UserPresence? = null,
+        val connectError: Boolean = false
 ) : MavericksState {
 
     sealed class TransfereeState {

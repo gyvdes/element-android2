@@ -189,6 +189,8 @@ import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.events.model.content.EncryptedEventContent
 import org.matrix.android.sdk.api.session.events.model.content.WithHeldCode
 import org.matrix.android.sdk.api.session.events.model.toModel
+import org.matrix.android.sdk.api.session.presence.model.PresenceEnum
+import org.matrix.android.sdk.api.session.presence.model.UserPresence
 import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.message.MessageAudioContent
@@ -212,6 +214,11 @@ import timber.log.Timber
 import java.net.URL
 import java.util.UUID
 import javax.inject.Inject
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Date
+import java.util.Locale
+import java.util.concurrent.TimeUnit
 
 @AndroidEntryPoint
 class TimelineFragment :
@@ -1144,7 +1151,9 @@ class TimelineFragment :
             return@withState
         }
         val summary = mainState.asyncRoomSummary()
-        renderToolbar(summary)
+        renderToolbar(summary, mainState)
+        timelineViewModel.handle(RoomDetailAction.PresenceUser(summary?.directUserId))
+
         views.removeJitsiWidgetView.render(mainState)
         if (mainState.hasFailedSending) {
             lazyLoadedViews.failedMessagesWarningView(inflateIfNeeded = true, createFailedMessagesWarningCallback())?.isVisible = true
@@ -1223,7 +1232,7 @@ class TimelineFragment :
         voiceMessageRecorderContainer.isVisible = false
     }
 
-    private fun renderToolbar(roomSummary: RoomSummary?) {
+    private fun renderToolbar(roomSummary: RoomSummary?, mainState: RoomDetailViewState) {
         when {
             isLocalRoom() -> {
                 views.includeRoomToolbar.roomToolbarContentView.isVisible = false
@@ -1257,8 +1266,55 @@ class TimelineFragment :
                     val shieldView = if (showPresence) views.includeRoomToolbar.roomToolbarTitleShield else views.includeRoomToolbar.roomToolbarAvatarShield
                     shieldView.render(roomSummary.roomEncryptionTrustLevel)
                     views.includeRoomToolbar.roomToolbarPublicImageView.isVisible = roomSummary.isPublic && !roomSummary.isDirect
+                    views.includeRoomToolbar.progressBarTb.isVisible = false
+                    val presence = when {
+                        formatLastSeen(mainState.presenceUser).isNotEmpty() -> formatLastSeen(mainState.presenceUser)
+                        else -> {
+                            views.includeRoomToolbar.progressBarTb.isVisible = true
+                            getString(CommonStrings.loading_data)}
+                    }
+                    views.includeRoomToolbar.roomToolbarTitleViewPresence.text = presence
                 }
             }
+        }
+    }
+
+    fun formatLastSeen(userPresence: UserPresence?): String {
+        if (userPresence == null) return ""
+
+        val lastPresenceAgo = userPresence.lastActiveAgo ?: return ""
+
+        val currentTime = System.currentTimeMillis()
+        val lastSeenTime = currentTime - lastPresenceAgo
+        val lastSeenDate = Date(lastSeenTime)
+
+        val now = Calendar.getInstance()
+        val lastSeenCalendar = Calendar.getInstance().apply { time = lastSeenDate }
+
+        val diffMillis = currentTime - lastSeenTime
+        val diffMinutes = TimeUnit.MILLISECONDS.toMinutes(diffMillis)
+        val diffHours = TimeUnit.MILLISECONDS.toHours(diffMillis)
+        val diffDays = TimeUnit.MILLISECONDS.toDays(diffMillis)
+        return when {
+            diffMillis < 15_000 -> getString(CommonStrings.status_online)
+            diffMillis < 60_000 -> getString(CommonStrings.status_just_now)
+            diffMinutes < 60 -> getString(CommonStrings.status_minutes_ago, diffMinutes)
+            diffHours < 24 -> getString(CommonStrings.status_hours_ago, diffHours)
+            diffDays == 1L -> getString(
+                    CommonStrings.status_yesterday_at,
+                    SimpleDateFormat("HH:mm", Locale.getDefault()).format(lastSeenDate)
+            )
+            diffDays < 7 -> getString(CommonStrings.status_days_ago, diffDays)
+            now.get(Calendar.YEAR) == lastSeenCalendar.get(Calendar.YEAR) ->
+                getString(
+                        CommonStrings.status_date_time,
+                        SimpleDateFormat("dd MMM 'at' HH:mm", Locale.getDefault()).format(lastSeenDate)
+                )
+            else ->
+                getString(
+                        CommonStrings.status_full_date_time,
+                        SimpleDateFormat("dd MMM yyyy 'at' HH:mm", Locale.getDefault()).format(lastSeenDate)
+                )
         }
     }
 
