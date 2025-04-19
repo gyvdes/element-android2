@@ -40,6 +40,7 @@ import org.matrix.android.sdk.api.session.sync.SyncState
 import org.matrix.android.sdk.api.session.sync.model.SyncResponse
 import org.matrix.android.sdk.internal.network.NetworkConnectivityChecker
 import org.matrix.android.sdk.internal.session.call.ActiveCallHandler
+import org.matrix.android.sdk.internal.session.sync.SyncPresence
 import org.matrix.android.sdk.internal.session.sync.SyncTask
 import org.matrix.android.sdk.internal.settings.DefaultLightweightSettingsStorage
 import org.matrix.android.sdk.internal.util.BackgroundDetectionObserver
@@ -78,6 +79,9 @@ internal class SyncThread @Inject constructor(
     private var previousSyncResponseHasToDevice = false
 
     private val activeCallListObserver = Observer<MutableList<MxCall>> { activeCalls ->
+        Timber.tag(loggerTag.value).d("VITAL... activeCalls ${activeCalls.size}")
+        Timber.tag(loggerTag.value).d("VITAL... isInBackground ${backgroundDetectionObserver.isInBackground}")
+
         if (activeCalls.isEmpty() && backgroundDetectionObserver.isInBackground) {
             pause()
         }
@@ -185,7 +189,11 @@ internal class SyncThread @Inject constructor(
                     else -> matrixConfiguration.syncConfig.longPollTimeout
                 }
                 Timber.tag(loggerTag.value).d("Execute sync request with timeout $timeout")
-                val presence = lightweightSettingsStorage.getSyncPresenceStatus()
+
+                val presence = if (backgroundDetectionObserver.isInBackground) {
+                    SyncPresence.Offline
+                }
+                else lightweightSettingsStorage.getSyncPresenceStatus()
                 val params = SyncTask.Params(timeout, presence, afterPause = afterPause)
                 val sync = syncScope.launch {
                     previousSyncResponseHasToDevice = doSync(params)
