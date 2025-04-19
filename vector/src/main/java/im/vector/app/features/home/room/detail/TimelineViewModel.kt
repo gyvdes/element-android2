@@ -534,11 +534,7 @@ class TimelineViewModel @AssistedInject constructor(
                 while (true) {
                     try {
                         val userPresence = userId?.let { session.presenceService().fetchPresence(it) }
-                        val speed = measureQuickInternetSpeed()
-                        if (speed < 50.0)
-                            setState { copy(presenceUser = null, connectError = true) }
-                        else
-                            userPresence?.let { setState { copy(presenceUser = it, connectError = false) } }
+                        userPresence?.let { setState { copy(presenceUser = it, connectError = false) } }
                     } catch (e: Throwable) {
                         setState { copy(presenceUser = null, connectError = true) }
                     }
@@ -546,41 +542,8 @@ class TimelineViewModel @AssistedInject constructor(
                 }
             }
     }
-
-    private fun measureDownloadSpeed() {
-        val url = "https://speedtest.selectel.ru/10MB"
-        val client = OkHttpClient.Builder()
-                .connectTimeout(4, TimeUnit.SECONDS)
-                .readTimeout(4, TimeUnit.SECONDS)
-                .build()
-
-        val request = Request.Builder()
-                .url(url)
-                .build()
-
-        client.newCall(request).enqueue(object : okhttp3.Callback {
-            override fun onFailure(call: okhttp3.Call, e: IOException) {
-                e.printStackTrace()
-            }
-
-            override fun onResponse(call: okhttp3.Call, response: Response) {
-            }
-        })
-    }
-
-    private suspend fun measureQuickInternetSpeed(): Double {
-        return withContext(Dispatchers.IO) {
-            try {
-                measureDownloadSpeed()
-                val startRxBytes = TrafficStats.getTotalRxBytes()
-                delay(3000)
-                val endRxBytes = TrafficStats.getTotalRxBytes()
-                val downloadSpeed = (endRxBytes - startRxBytes) / 1024.0 / 5.0 // КБ/с
-                return@withContext downloadSpeed
-            } catch (e: Exception) {
-                return@withContext -4.0
-            }
-        }
+    fun resetPresence() {
+        setState { copy(presenceUser = null, connectError = true) }
     }
 
     private fun handleOpenElementCallWidget() = withState { state ->
