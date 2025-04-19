@@ -261,20 +261,18 @@ class VectorCallActivity :
                     val callState = it.callState.invoke()
                     if (callState !is CallState.LocalRinging && callState !is CallState.Ended && callState != null) {
                         Timber.tag(loggerTag.value).v("Starting microphone foreground service")
-                        if(callState is CallState.Connected && callState.iceConnectionState.ordinal > 1)
-                        Timber.tag(loggerTag.value).v("Call two ringing")   else {
-                        try {
-                            val intent = Intent(this, MicrophoneAccessService::class.java)
-                            ContextCompat.startForegroundService(this, intent)
-                        } catch (e: Exception) {
-                            Timber.tag(loggerTag.value).v("Starting microphone foreground service excep ${e.message}")
-                        } catch (error: Throwable) {
-                            Timber.tag(loggerTag.value).v("Starting microphone foreground service errpr ${error.message}")
-                        }
-                        catch (error: java.lang.Exception) {
-                            Timber.tag(loggerTag.value).v("Starting microphone foreground service yexcep ${error.message}")
-                        }
-
+                        if (callState is CallState.Connected && callState.iceConnectionState.ordinal > 1)
+                            Timber.tag(loggerTag.value).v("Call two ringing") else {
+                            try {
+                                val intent = Intent(this, MicrophoneAccessService::class.java)
+                                ContextCompat.startForegroundService(this, intent)
+                            } catch (e: Exception) {
+                                Timber.tag(loggerTag.value).v("Starting microphone foreground service excep ${e.message}")
+                            } catch (error: Throwable) {
+                                Timber.tag(loggerTag.value).v("Starting microphone foreground service errpr ${error.message}")
+                            } catch (error: java.lang.Exception) {
+                                Timber.tag(loggerTag.value).v("Starting microphone foreground service yexcep ${error.message}")
+                            }
                         }
                     } else {
                         Timber.tag(loggerTag.value).v("Call is in ringing or ended state; cannot start microphone service. callState: $callState")
@@ -292,6 +290,7 @@ class VectorCallActivity :
         val appProcess = ProcessLifecycleOwner.get().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)
         return appProcess
     }
+
     private fun stopMicrophoneService() {
         Timber.tag(loggerTag.value).d("Stopping MicrophoneAccessService (if needed).")
         val intent = Intent(this, MicrophoneAccessService::class.java)
@@ -351,6 +350,7 @@ class VectorCallActivity :
         views.callActionText.isVisible = false
         views.smallIsHeldIcon.isVisible = false
         callViewModel.handlePresenceUser(state.callInfo?.opponentUserItem?.id)
+        Timber.i("presence status TimeLineFragment${state.presenceUser?.statusMessage}")
         views.callToolbarPresence.text = formatLastSeen(state.presenceUser)
         when (callState) {
             is CallState.Idle,
@@ -437,44 +437,16 @@ class VectorCallActivity :
             }
         }
     }
+
     fun formatLastSeen(userPresence: UserPresence?): String {
         if (userPresence == null) return ""
-
-        val lastPresenceAgo = userPresence.lastActiveAgo ?: return ""
-
-        val currentTime = System.currentTimeMillis()
-        val lastSeenTime = currentTime - lastPresenceAgo
-        val lastSeenDate = Date(lastSeenTime)
-
-        val now = Calendar.getInstance()
-        val lastSeenCalendar = Calendar.getInstance().apply { time = lastSeenDate }
-
-        val diffMillis = currentTime - lastSeenTime
-        val diffMinutes = TimeUnit.MILLISECONDS.toMinutes(diffMillis)
-        val diffHours = TimeUnit.MILLISECONDS.toHours(diffMillis)
-        val diffDays = TimeUnit.MILLISECONDS.toDays(diffMillis)
-        return when {
-            diffMillis < 15_000 -> getString(CommonStrings.status_online)
-            diffMillis < 60_000 -> getString(CommonStrings.status_just_now)
-            diffMinutes < 60 -> getString(CommonStrings.status_minutes_ago, diffMinutes)
-            diffHours < 24 -> getString(CommonStrings.status_hours_ago, diffHours)
-            diffDays == 1L -> getString(
-                    CommonStrings.status_yesterday_at,
-                    SimpleDateFormat("HH:mm", Locale.getDefault()).format(lastSeenDate)
-            )
-            diffDays < 7 -> getString(CommonStrings.status_days_ago, diffDays)
-            now.get(Calendar.YEAR) == lastSeenCalendar.get(Calendar.YEAR) ->
-                getString(
-                        CommonStrings.status_date_time,
-                        SimpleDateFormat("dd MMM 'at' HH:mm", Locale.getDefault()).format(lastSeenDate)
-                )
-            else ->
-                getString(
-                        CommonStrings.status_full_date_time,
-                        SimpleDateFormat("dd MMM yyyy 'at' HH:mm", Locale.getDefault()).format(lastSeenDate)
-                )
+        return when (userPresence.statusMessage) {
+            "INCOMING_RINGING_CALL" -> getString(CommonStrings.call_ringing_label)
+            "CALL_TERMINATED" -> getString(CommonStrings.call_ended_by_caller)
+            else -> ""
         }
     }
+
     private fun renderPiPMode(state: VectorCallViewState) {
         val callState = state.callState.invoke()
         views.callToolbar.isVisible = false

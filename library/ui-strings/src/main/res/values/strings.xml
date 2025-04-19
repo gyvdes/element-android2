@@ -650,6 +650,9 @@
     <string name="call_ended_invite_timeout_title">No answer</string>
     <string name="call_error_user_not_responding">The remote side failed to pick up.</string>
 
+    <string name="call_ringing_label">Call ringing</string>
+    <string name="call_ended_by_caller">Call ended by caller</string>
+
     <string name="call_remove_jitsi_widget_progress">Ending call…</string>
 
     <string name="microphone_in_use_title">Microphone in use</string>
