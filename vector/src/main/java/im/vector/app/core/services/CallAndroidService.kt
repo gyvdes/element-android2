@@ -109,6 +109,7 @@ class CallAndroidService : VectorAndroidService() {
                 if (mediaSession?.isActive != true) {
                     callRingPlayerIncoming?.start(fromBg)
                 }
+                callManager.setStatus("INCOMING_RINGING_CALL")
                 displayIncomingCallNotification(intent)
                 mediaSession?.isActive = true
             }
@@ -116,13 +117,16 @@ class CallAndroidService : VectorAndroidService() {
                 mediaSession?.isActive = true
                 callRingPlayerOutgoing?.start()
                 displayOutgoingRingingCallNotification(intent)
+                callManager.setStatus("OUTGOING_RINGING_CALL")
             }
             ACTION_ONGOING_CALL -> {
+                callManager.setStatus("ONGOING_CALL")
                 callRingPlayerIncoming?.stop()
                 callRingPlayerOutgoing?.stop()
                 displayCallInProgressNotification(intent)
             }
             ACTION_CALL_TERMINATED -> {
+                callManager.setStatus("CALL_TERMINATED")
                 handleCallTerminated(intent)
             }
             else -> {
