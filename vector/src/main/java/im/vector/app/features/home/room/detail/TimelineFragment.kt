@@ -983,6 +983,7 @@ class TimelineFragment :
         notificationDrawerManager.setCurrentThread(timelineArgs.threadTimelineArgs?.rootThreadEventId)
         roomDetailPendingActionStore.data?.let { handlePendingAction(it) }
         roomDetailPendingActionStore.data = null
+        timelineViewModel.resetPresence()
     }
 
     private fun handlePendingAction(roomDetailPendingAction: RoomDetailPendingAction) {
