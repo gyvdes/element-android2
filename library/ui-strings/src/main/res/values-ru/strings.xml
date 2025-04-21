@@ -322,6 +322,7 @@
     <string name="call_error_user_not_responding">Вызываемый абонент не смог ответить.</string>
     <string name="call_ringing_label">Звонок у абонента</string>
     <string name="call_ended_by_caller">Звонок завершен абонентом</string>
+    <string name="ongoing_call">Текущий звонок</string>
     <string name="permissions_rationale_popup_title">Информация</string>
     <string name="permissions_rationale_msg_record_audio">${app_name} необходимы разрешения на доступ к микрофону, чтобы выполнять звонки.</string>
     <string name="permissions_rationale_msg_camera_and_audio">${app_name} необходимы разрешения на доступ к камере и микрофону для видеовызовов.

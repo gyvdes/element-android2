@@ -443,6 +443,7 @@ class VectorCallActivity :
         return when (userPresence.statusMessage) {
             "INCOMING_RINGING_CALL" -> getString(CommonStrings.call_ringing_label)
             "CALL_TERMINATED" -> getString(CommonStrings.call_ended_by_caller)
+            "ONGOING_CALL" -> getString(CommonStrings.ongoing_call)
             else -> ""
         }
     }

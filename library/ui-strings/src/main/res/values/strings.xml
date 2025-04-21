@@ -652,6 +652,7 @@
 
     <string name="call_ringing_label">Call ringing</string>
     <string name="call_ended_by_caller">Call ended by caller</string>
+    <string name="ongoing_call">Ongoing call</string>
 
     <string name="call_remove_jitsi_widget_progress">Ending call…</string>
 
