@@ -245,6 +245,10 @@ class VectorPreferences @Inject constructor(
         const val TAKE_PHOTO_VIDEO_MODE_PHOTO = 1
         const val TAKE_PHOTO_VIDEO_MODE_VIDEO = 2
 
+        // Video call
+        const val SETTINGS_PREFERRED_JITSI_DOMAIN_NAME_KEY = "SETTINGS_PREFERRED_JITSI_DOMAIN_NAME_KEY"
+        const val SETTINGS_JITSI_WIDGET_URL_KEY = "SETTINGS_JITSI_WIDGET_URL_KEY"
+
         const val HAD_EXISTING_LEGACY_DATA = "HAD_EXISTING_LEGACY_DATA"
         const val IS_ON_RUST_CRYPTO = "IS_ON_RUST_CRYPTO"
         // Background sync modes

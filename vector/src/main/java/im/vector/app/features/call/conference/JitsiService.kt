@@ -9,6 +9,7 @@ package im.vector.app.features.call.conference
 
 import im.vector.app.core.network.await
 import im.vector.app.core.resources.StringProvider
+import im.vector.app.core.utils.RingtoneUtils
 import im.vector.app.core.utils.ensureProtocol
 import im.vector.app.core.utils.toBase32String
 import im.vector.app.features.call.conference.jwt.JitsiJWTFactory
@@ -40,6 +41,7 @@ class JitsiService @Inject constructor(
         private val jitsiJWTFactory: JitsiJWTFactory,
         private val clock: Clock,
         private val vectorLocale: VectorLocaleProvider,
+        private val ringtoneUtils: RingtoneUtils
 ) {
 
     companion object {
@@ -47,28 +49,29 @@ class JitsiService @Inject constructor(
     }
 
     private val jitsiWidgetDataFactory by lazy {
-        JitsiWidgetDataFactory(stringProvider.getString(im.vector.app.config.R.string.preferred_jitsi_domain)) { widget ->
+        JitsiWidgetDataFactory(ringtoneUtils.getPrefJitsiDomain()) { widget ->
             session.widgetService().getWidgetComputedUrl(widget, themeProvider.isLightTheme())
         }
     }
 
     suspend fun createJitsiWidget(roomId: String, withVideo: Boolean): Widget {
-        // Build data for a jitsi widget
+// Build data for a jitsi widget
         val widgetId: String = WidgetType.Jitsi.preferred + "_" + session.myUserId + "_" + clock.epochMillis()
-        val preferredJitsiDomain = tryOrNull {
-            rawService.getElementWellknown(session.sessionParams)
-                    ?.jitsiServer
-                    ?.preferredDomain
-        }
-        val jitsiDomain = preferredJitsiDomain ?: stringProvider.getString(im.vector.app.config.R.string.preferred_jitsi_domain)
+//default domain uncomment
+//        val preferredJitsiDomain = tryOrNull {
+//            rawService.getElementWellknown(session.sessionParams)
+//                    ?.jitsiServer
+//                    ?.preferredDomain
+//        }
+        val jitsiDomain = ringtoneUtils.getPrefJitsiDomain()
         val jitsiAuth = getJitsiAuth(jitsiDomain)
         val confId = createConferenceId(roomId, jitsiAuth)
-
         // We use the default element wrapper for this widget
         // https://github.com/element-hq/element-web/blob/develop/docs/jitsi-dev.md
         // https://github.com/matrix-org/matrix-react-sdk/blob/develop/src/utils/WidgetUtils.ts#L469
+        val jitsiWidgetURL = ringtoneUtils.getJitsiWidgetUrl()
         val url = buildString {
-            append("https://app.element.io/jitsi.html")
+            append("https://$jitsiWidgetURL/jitsi.html")
             appendParamToUrl("confId", confId)
             append("#conferenceDomain=\$domain")
             append("&conferenceId=\$conferenceId")

@@ -23,6 +23,16 @@
             android:title="@string/settings_call_ringtone_title"
             app:isPreferenceVisible="@bool/false_not_implemented" />
 
+        <im.vector.app.core.preference.VectorEditTextPreference
+            android:key="SETTINGS_PREFERRED_JITSI_DOMAIN"
+            android:persistent="false"
+            android:title="Preferred domain" />
+
+        <im.vector.app.core.preference.VectorEditTextPreference
+            android:key="SETTINGS_JITSI_WIDGET_URL"
+            android:persistent="false"
+            android:title="Jitsi widget URL" />
+
     </im.vector.app.core.preference.VectorPreferenceCategory>
 
 </androidx.preference.PreferenceScreen>

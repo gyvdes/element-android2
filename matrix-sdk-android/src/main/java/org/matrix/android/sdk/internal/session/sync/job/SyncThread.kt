@@ -79,8 +79,6 @@ internal class SyncThread @Inject constructor(
     private var previousSyncResponseHasToDevice = false
 
     private val activeCallListObserver = Observer<MutableList<MxCall>> { activeCalls ->
-        Timber.tag(loggerTag.value).d("VITAL... activeCalls ${activeCalls.size}")
-        Timber.tag(loggerTag.value).d("VITAL... isInBackground ${backgroundDetectionObserver.isInBackground}")
 
         if (activeCalls.isEmpty() && backgroundDetectionObserver.isInBackground) {
             pause()

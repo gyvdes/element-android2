@@ -14,6 +14,7 @@ import android.media.RingtoneManager
 import android.net.Uri
 import androidx.core.content.edit
 import im.vector.app.core.di.DefaultPreferences
+import im.vector.app.core.resources.StringProvider
 import im.vector.app.features.settings.VectorPreferences
 import javax.inject.Inject
 
@@ -25,6 +26,7 @@ import javax.inject.Inject
 class RingtoneUtils @Inject constructor(
         @DefaultPreferences
         private val sharedPreferences: SharedPreferences,
+        private val stringProvider: StringProvider,
         private val context: Context,
 ) {
     /**
@@ -51,6 +53,36 @@ class RingtoneUtils @Inject constructor(
             // Ignore for now
             null
         }
+    }
+
+    fun getPrefJitsiDomain(): String {
+        val prefDomain: String? = sharedPreferences
+                .getString(VectorPreferences.SETTINGS_PREFERRED_JITSI_DOMAIN_NAME_KEY, null)
+        return if (prefDomain.isNullOrEmpty())
+            stringProvider.getString(im.vector.app.config.R.string.preferred_jitsi_domain)
+        else prefDomain
+    }
+
+    fun setPrefJitsiDomain(prefDomain: String) {
+        sharedPreferences
+                .edit {
+                    putString(VectorPreferences.SETTINGS_PREFERRED_JITSI_DOMAIN_NAME_KEY, prefDomain)
+                }
+    }
+
+    fun getJitsiWidgetUrl(): String {
+        val prefDomain: String? = sharedPreferences
+                .getString(VectorPreferences.SETTINGS_JITSI_WIDGET_URL_KEY, null)
+        return if (prefDomain.isNullOrEmpty())
+            stringProvider.getString(im.vector.app.config.R.string.jitsi_widget_url)
+        else prefDomain
+    }
+
+    fun setJitsiWidgetUrl(jitsi: String) {
+        sharedPreferences
+                .edit {
+                    putString(VectorPreferences.SETTINGS_JITSI_WIDGET_URL_KEY, jitsi)
+                }
     }
 
     /**

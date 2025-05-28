@@ -12,6 +12,8 @@ import android.content.Intent
 import android.media.RingtoneManager
 import android.net.Uri
 import android.os.Bundle
+import androidx.lifecycle.lifecycleScope
+import androidx.preference.EditTextPreference
 import androidx.preference.Preference
 import androidx.preference.SwitchPreference
 import dagger.hilt.android.AndroidEntryPoint
@@ -22,6 +24,7 @@ import im.vector.app.core.utils.RingtoneUtils
 import im.vector.app.features.analytics.plan.MobileScreen
 import im.vector.lib.core.utils.compat.getParcelableExtraCompat
 import im.vector.lib.strings.CommonStrings
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -34,6 +37,12 @@ class VectorSettingsVoiceVideoFragment : VectorSettingsBaseFragment() {
 
     private val mUseRiotCallRingtonePreference by lazy {
         findPreference<SwitchPreference>(VectorPreferences.SETTINGS_CALL_RINGTONE_USE_RIOT_PREFERENCE_KEY)!!
+    }
+    private val mPreferredDomain by lazy {
+        findPreference<EditTextPreference>("SETTINGS_PREFERRED_JITSI_DOMAIN")!!
+    }
+    private val mJitsiWidgetURL by lazy {
+        findPreference<EditTextPreference>("SETTINGS_JITSI_WIDGET_URL")!!
     }
     private val mCallRingtonePreference by lazy {
         findPreference<VectorPreference>(VectorPreferences.SETTINGS_CALL_RINGTONE_URI_PREFERENCE_KEY)!!
@@ -58,6 +67,26 @@ class VectorSettingsVoiceVideoFragment : VectorSettingsBaseFragment() {
                 false
             }
         }
+        // PreferredJitsiDomain
+        mPreferredDomain.let {
+            it.summary = ringtoneUtils.getPrefJitsiDomain()
+            it.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+                newValue
+                        ?.let { value -> (value as? String)?.trim() }
+                        ?.let { value -> onPrefDomainChanged(value) }
+                false
+            }
+        }
+        // PreferredJitsiDomain
+        mJitsiWidgetURL.let {
+            it.summary = ringtoneUtils.getJitsiWidgetUrl()
+            it.onPreferenceChangeListener = Preference.OnPreferenceChangeListener { _, newValue ->
+                newValue
+                        ?.let { value -> (value as? String)?.trim() }
+                        ?.let { value -> onJitsiWidgetUrlChanged(value) }
+                false
+            }
+        }
     }
 
     private val ringtoneStartForActivityResult = registerStartForActivityResult { activityResult ->
@@ -79,5 +108,59 @@ class VectorSettingsVoiceVideoFragment : VectorSettingsBaseFragment() {
             putExtra(RingtoneManager.EXTRA_RINGTONE_EXISTING_URI, ringtoneUtils.getCallRingtoneUri())
         }
         ringtoneStartForActivityResult.launch(intent)
+    }
+
+    /**
+     * Update the Preferred Domain.
+     */
+
+    private fun onPrefDomainChanged(value: String) {
+        val currentPrefJitsiDomain = ringtoneUtils.getPrefJitsiDomain()
+        if (currentPrefJitsiDomain != value) {
+            displayLoadingView()
+            lifecycleScope.launch {
+                val result = runCatching { ringtoneUtils.setPrefJitsiDomain(value) }
+                if (!isAdded) return@launch
+                result.fold(
+                        onSuccess = {
+                            // refresh the settings value
+                            mPreferredDomain.summary = value
+                            mPreferredDomain.text = value
+                            hideLoadingView()
+                        },
+                        onFailure = {
+                            hideLoadingView()
+                            displayErrorDialog(it)
+                        }
+                )
+            }
+        }
+    }
+
+    /**
+     * Update the Jitsi Widget URL.
+     */
+
+    private fun onJitsiWidgetUrlChanged(value: String) {
+        val currentJitsiWidgetUrl = ringtoneUtils.getJitsiWidgetUrl()
+        if (currentJitsiWidgetUrl != value) {
+            displayLoadingView()
+            lifecycleScope.launch {
+                val result = runCatching { ringtoneUtils.setJitsiWidgetUrl(value) }
+                if (!isAdded) return@launch
+                result.fold(
+                        onSuccess = {
+                            // refresh the settings value
+                            mJitsiWidgetURL.summary = value
+                            mJitsiWidgetURL.text = value
+                            hideLoadingView()
+                        },
+                        onFailure = {
+                            hideLoadingView()
+                            displayErrorDialog(it)
+                        }
+                )
+            }
+        }
     }
 }
