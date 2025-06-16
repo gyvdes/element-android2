@@ -7,7 +7,6 @@
 
 package im.vector.app.features.home.room.detail
 
-import android.net.TrafficStats
 import android.net.Uri
 import androidx.annotation.IdRes
 import androidx.core.net.toUri
@@ -79,9 +78,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.Response
 import org.matrix.android.sdk.api.MatrixPatterns
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
 import org.matrix.android.sdk.api.extensions.orFalse
@@ -100,6 +96,7 @@ import org.matrix.android.sdk.api.session.events.model.toContent
 import org.matrix.android.sdk.api.session.events.model.toModel
 import org.matrix.android.sdk.api.session.file.FileService
 import org.matrix.android.sdk.api.session.getRoom
+import org.matrix.android.sdk.api.session.presence.model.PresenceEnum
 import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.getStateEvent
 import org.matrix.android.sdk.api.session.room.getTimelineEvent
@@ -129,10 +126,7 @@ import org.matrix.android.sdk.api.util.toOptional
 import org.matrix.android.sdk.flow.flow
 import org.matrix.android.sdk.flow.unwrap
 import timber.log.Timber
-import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
-import java.net.URL
-import java.util.concurrent.TimeUnit
 
 class TimelineViewModel @AssistedInject constructor(
         @Assisted private val initialState: RoomDetailViewState,
@@ -525,6 +519,7 @@ class TimelineViewModel @AssistedInject constructor(
             RoomDetailAction.StopLiveLocationSharing -> handleStopLiveLocationSharing()
             RoomDetailAction.OpenElementCallWidget -> handleOpenElementCallWidget()
             is RoomDetailAction.PresenceUser -> handlePresenceUser(action.userId)
+            is RoomDetailAction.SetPresence -> setPresence(action.presenceEnum)
         }
     }
 
@@ -542,8 +537,16 @@ class TimelineViewModel @AssistedInject constructor(
                 }
             }
     }
-    fun resetPresence() {
+
+    private fun setPresence(presenceEnum: PresenceEnum) {
         setState { copy(presenceUser = null, connectError = true) }
+        viewModelScope.launch {
+            try {
+                session.presenceService().setMyPresence(presenceEnum, statusMsg = "")
+            } catch (e: Throwable) {
+                Timber.e(e, "Connect Error ${e.message}")
+            }
+        }
     }
 
     private fun handleOpenElementCallWidget() = withState { state ->

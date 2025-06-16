@@ -13,7 +13,7 @@ import im.vector.app.core.platform.VectorViewModelAction
 import im.vector.app.features.call.conference.ConferenceEvent
 import im.vector.app.features.voicebroadcast.model.VoiceBroadcast
 import org.matrix.android.sdk.api.session.content.ContentAttachmentData
-import org.matrix.android.sdk.api.session.presence.model.UserPresence
+import org.matrix.android.sdk.api.session.presence.model.PresenceEnum
 import org.matrix.android.sdk.api.session.room.model.message.MessageStickerContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.timeline.Timeline
@@ -115,6 +115,8 @@ sealed class RoomDetailAction : VectorViewModelAction {
     object OpenElementCallWidget : RoomDetailAction()
 
     data class PresenceUser(val userId: String?) : RoomDetailAction()
+
+    data class SetPresence(val presenceEnum: PresenceEnum) : RoomDetailAction()
 
     sealed class VoiceBroadcastAction : RoomDetailAction() {
         sealed class Recording : VoiceBroadcastAction() {
