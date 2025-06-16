@@ -39,6 +39,7 @@ import im.vector.app.features.home.room.list.home.invites.InvitesActivity
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
+import org.matrix.android.sdk.api.session.presence.model.PresenceEnum
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.SpaceChildInfo
 import org.matrix.android.sdk.api.session.room.model.tag.RoomTag
@@ -205,6 +206,11 @@ class HomeRoomListFragment :
                 }
                 .setNegativeButton(CommonStrings.action_cancel, null)
                 .show()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        roomListViewModel.handle(HomeRoomListAction.SetPresence(PresenceEnum.ONLINE))
     }
 
     private fun onInvitesCounterClicked() {

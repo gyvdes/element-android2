@@ -26,6 +26,7 @@ import im.vector.app.features.analytics.extensions.toTrackingValue
 import im.vector.app.features.analytics.plan.UserProperties
 import im.vector.app.features.displayname.getBestName
 import im.vector.app.features.home.room.list.home.header.HomeRoomFilter
+import im.vector.app.features.session.coroutineScope
 import im.vector.lib.strings.CommonStrings
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
@@ -44,9 +45,11 @@ import org.matrix.android.sdk.api.query.RoomCategoryFilter
 import org.matrix.android.sdk.api.query.RoomTagQueryFilter
 import org.matrix.android.sdk.api.query.toActiveSpaceOrNoFilter
 import org.matrix.android.sdk.api.session.Session
+import org.matrix.android.sdk.api.session.events.model.EventType
 import org.matrix.android.sdk.api.session.getRoom
 import org.matrix.android.sdk.api.session.getUserOrDefault
 import org.matrix.android.sdk.api.session.presence.model.PresenceEnum
+import org.matrix.android.sdk.api.session.room.Room
 import org.matrix.android.sdk.api.session.room.RoomSortOrder
 import org.matrix.android.sdk.api.session.room.RoomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.UpdatableLivePageResult
@@ -54,8 +57,12 @@ import org.matrix.android.sdk.api.session.room.model.Membership
 import org.matrix.android.sdk.api.session.room.model.RoomSummary
 import org.matrix.android.sdk.api.session.room.model.localecho.RoomLocalEcho
 import org.matrix.android.sdk.api.session.room.model.tag.RoomTag
+import org.matrix.android.sdk.api.session.room.read.ReadService
 import org.matrix.android.sdk.api.session.room.roomSummaryQueryParams
 import org.matrix.android.sdk.api.session.room.state.isPublic
+import org.matrix.android.sdk.api.session.room.timeline.Timeline
+import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
+import org.matrix.android.sdk.api.session.room.timeline.TimelineSettings
 import org.matrix.android.sdk.api.util.Optional
 import org.matrix.android.sdk.api.util.toMatrixItem
 import org.matrix.android.sdk.api.util.toOption
@@ -106,7 +113,85 @@ class HomeRoomListViewModel @AssistedInject constructor(
         observeRecents()
         observeFilterTabs()
         observeSpaceChanges()
+        observeSystemMessagesForReadReceipts()
     }
+
+    private fun observeSystemMessagesForReadReceipts() {
+        session.flow()
+                .liveRoomSummaries(
+                        filteredPagedRoomSummariesLive.queryParams,
+                        RoomSortOrder.ACTIVITY
+                ).onEach { list ->
+                    list.forEach {
+
+                        systemMessagesForReadReceipts(it.roomId, it.notificationCount)
+
+                    }
+
+                }.launchIn(viewModelScope)
+    }
+
+    private fun systemMessagesForReadReceipts(roomId: String, countUnread: Int) {
+        if (countUnread == 0) return
+        val room = session.getRoom(roomId) ?: return
+        viewModelScope.launch {
+
+            val timelineSettings = TimelineSettings(
+                    initialSize = 30, // сколько сообщений подгрузить при старте
+                    false,
+                    null,
+                    false
+            )
+
+            val timeline = room.timelineService().createTimeline(null, timelineSettings)
+
+            val listener = object : Timeline.Listener {
+                override fun onTimelineUpdated(snapshot: List<TimelineEvent>) {
+
+                    val firstEvent = snapshot.lastOrNull() ?: return
+
+                    val firstN = snapshot.take(countUnread)
+
+                    if (!EventType.isCallEvent(firstEvent.root.getClearType())) return
+
+
+                    for (event in firstN) {
+                        val type = event.root.getClearType()
+                        if (!EventType.isCallEvent(type)) return
+                    }
+                    for (event in firstN) {
+
+                        val type = event.root.getClearType()
+                        if (EventType.isCallEvent(type)) {
+                            sendReadReceipt(event.eventId, room)
+                        }
+                    }
+                }
+            }
+
+            timeline.addListener(listener)
+
+            timeline.start()
+
+            delay(3000)
+
+            timeline.dispose()
+        }
+    }
+
+    private fun sendReadReceipt(eventId: String?, room: Room) {
+        if (eventId == null) return
+        viewModelScope.launch {
+            try {
+                session.coroutineScope.launch {
+                    room.readService().setReadReceipt(eventId, ReadService.THREAD_ID_MAIN)
+                }
+            } catch (e: Exception) {
+                Timber.e(e, "Failed to send read receipt for event $eventId")
+            }
+        }
+    }
+
     private fun observeSpaceChanges() {
         spaceStateHandler.getSelectedSpaceFlow()
                 .distinctUntilChanged()
@@ -312,7 +397,18 @@ class HomeRoomListViewModel @AssistedInject constructor(
             is HomeRoomListAction.ChangeRoomNotificationState -> handleChangeNotificationMode(action)
             is HomeRoomListAction.ToggleTag -> handleToggleTag(action)
             is HomeRoomListAction.ChangeRoomFilter -> handleChangeRoomFilter(action.filter)
+            is HomeRoomListAction.SetPresence -> setPresence(action.presenceEnum)
             HomeRoomListAction.DeleteAllLocalRoom -> handleDeleteLocalRooms()
+        }
+    }
+
+    private fun setPresence(presenceEnum: PresenceEnum) {
+        viewModelScope.launch {
+            try {
+                session.presenceService().setMyPresence(presenceEnum, statusMsg = "")
+            } catch (e: Throwable) {
+                Timber.e(e, "Connect Error ${e.message}")
+            }
         }
     }
 
