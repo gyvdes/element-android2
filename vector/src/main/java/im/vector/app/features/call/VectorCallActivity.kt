@@ -81,11 +81,6 @@ import org.webrtc.EglBase
 import org.webrtc.RendererCommon
 import org.webrtc.ScreenCapturerAndroid
 import timber.log.Timber
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Date
-import java.util.Locale
-import java.util.concurrent.TimeUnit
 import javax.inject.Inject
 
 @Parcelize
@@ -350,7 +345,6 @@ class VectorCallActivity :
         views.callActionText.isVisible = false
         views.smallIsHeldIcon.isVisible = false
         callViewModel.handlePresenceUser(state.callInfo?.opponentUserItem?.id)
-        Timber.i("presence status TimeLineFragment${state.presenceUser?.statusMessage}")
         views.callToolbarPresence.text = formatLastSeen(state.presenceUser)
         when (callState) {
             is CallState.Idle,
@@ -438,7 +432,7 @@ class VectorCallActivity :
         }
     }
 
-    fun formatLastSeen(userPresence: UserPresence?): String {
+    private fun formatLastSeen(userPresence: UserPresence?): String {
         if (userPresence == null) return ""
         return when (userPresence.statusMessage) {
             "INCOMING_RINGING_CALL" -> getString(CommonStrings.call_ringing_label)

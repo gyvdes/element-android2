@@ -244,8 +244,6 @@ class WebRtcCallManager @Inject constructor(
     }
 
     private fun onCallEnded(callId: String, endCallReason: EndCallReason, rejected: Boolean) {
-        Timber.tag(loggerTag.value).v("VITAL onCall ended: $callId")
-       // currentSession?.callSignalingService()?.removeCallHandler(callId)
         val webRtcCall = callsByCallId.remove(callId) ?: return Unit.also {
             Timber.tag(loggerTag.value).v("On call ended for unknown call $callId")
         }
@@ -311,14 +309,24 @@ class WebRtcCallManager @Inject constructor(
         // start the activity now
         context.startActivity(VectorCallActivity.newIntent(context, webRtcCall, VectorCallActivity.OUTGOING_CREATED))
     }
+
     fun setStatus(status: String) {
         sessionScope?.launch {
-            currentSession?.presenceService()?.setMyPresence(PresenceEnum.ONLINE, statusMsg = status)
-            if(status=="CALL_TERMINATED") {
-            delay(7000)
-            currentSession?.presenceService()?.setMyPresence(PresenceEnum.ONLINE, statusMsg = "")}
+            val presenceEnum = if (isInBackground) PresenceEnum.OFFLINE else PresenceEnum.ONLINE
+
+            when (status) {
+                "INCOMING_RINGING_CALL" -> currentSession?.presenceService()?.setMyPresence(presenceEnum, statusMsg = status)
+                "CALL_TERMINATED" -> {
+                    delay(4000)
+                    currentSession?.presenceService()?.setMyPresence(PresenceEnum.OFFLINE, statusMsg = "")
+                }
+                "ONGOING_CALL" -> currentSession?.presenceService()?.setMyPresence(presenceEnum, statusMsg = status)
+                else -> {}
+            }
+
         }
     }
+
     override fun onCallIceCandidateReceived(mxCall: MxCall, iceCandidatesContent: CallCandidatesContent) {
         Timber.tag(loggerTag.value).v("onCallIceCandidateReceived for call ${mxCall.callId}")
         val call = callsByCallId[iceCandidatesContent.callId]
@@ -356,7 +364,6 @@ class WebRtcCallManager @Inject constructor(
     }
 
     fun endCallForRoom(roomId: String) {
-        Timber.tag(loggerTag.value).v("VITAL endCallForRoom")
         callsByRoomId[roomId]?.firstOrNull()?.endCall()
     }
 
